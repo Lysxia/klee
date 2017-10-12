@@ -152,6 +152,8 @@ extern "C" {
   /* Print range for given argument and tagged with name */
   void klee_print_range(const char * name, int arg );
 
+  /* Get errno value of the current state */
+  int klee_get_errno(void);
 #ifdef __cplusplus
 }
 #endif
