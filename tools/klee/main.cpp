@@ -657,6 +657,16 @@ static int initEnv(Module *mainModule) {
 
   Instruction *firstInst = &*(mainFn->begin()->begin());
 
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+  Value *oldArgc = &*(mainFn->arg_begin());
+  Value *oldArgv = &*(mainFn->arg_begin() + 1);
+
+  const DataLayout &DL = mainFn->getParent()->getDataLayout();
+  AllocaInst* argcPtr =
+    new AllocaInst(oldArgc->getType(), DL.getAllocaAddrSpace(), "argcPtr", firstInst);
+  AllocaInst* argvPtr =
+    new AllocaInst(oldArgv->getType(), DL.getAllocaAddrSpace(), "argvPtr", firstInst);
+#else
   Value *oldArgc = &*(mainFn->arg_begin());
   Value *oldArgv = &*(++mainFn->arg_begin());
 
@@ -664,6 +674,7 @@ static int initEnv(Module *mainModule) {
     new AllocaInst(oldArgc->getType(), "argcPtr", firstInst);
   AllocaInst* argvPtr =
     new AllocaInst(oldArgv->getType(), "argvPtr", firstInst);
+#endif
 
   /* Insert void klee_init_env(int* argc, char*** argv) */
   std::vector<const Type*> params;
@@ -671,11 +682,18 @@ static int initEnv(Module *mainModule) {
   params.push_back(Type::getInt32Ty(ctx));
   params.push_back(Type::getInt32Ty(ctx));
   Function* initEnvFn =
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+    cast<Function>(mainModule->getOrInsertFunction("klee_init_env",
+                                                   Type::getVoidTy(ctx),
+                                                   argcPtr->getType(),
+                                                   argvPtr->getType()));
+#else
     cast<Function>(mainModule->getOrInsertFunction("klee_init_env",
                                                    Type::getVoidTy(ctx),
                                                    argcPtr->getType(),
                                                    argvPtr->getType(),
                                                    NULL));
+#endif
   assert(initEnvFn);
   std::vector<Value*> args;
   args.push_back(argcPtr);
