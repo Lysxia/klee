@@ -1571,7 +1571,11 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       // switch to an internal rep.
       llvm::IntegerType *Ty = cast<IntegerType>(si->getCondition()->getType());
       ConstantInt *ci = ConstantInt::get(Ty, CE->getZExtValue());
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+      unsigned index = si->findCaseValue(ci)->getSuccessorIndex();
+#else
       unsigned index = si->findCaseValue(ci).getSuccessorIndex();
+#endif
       transferToBasicBlock(si->getSuccessor(index), si->getParent(), state);
     } else {
       // Handle possible different branch targets
@@ -1587,8 +1591,7 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
       std::map<ref<Expr>, BasicBlock *> expressionOrder;
 
       // Iterate through all non-default cases and order them by expressions
-      for (SwitchInst::CaseIt i = si->case_begin(), e = si->case_end(); i != e;
-           ++i) {
+      for (auto i : si->cases()) {
         ref<Expr> value = evalConstant(i.getCaseValue());
 
         BasicBlock *caseSuccessor = i.getCaseSuccessor();
@@ -2216,7 +2219,12 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
     llvm::APFloat Arg(*fpWidthToSemantics(arg->getWidth()), arg->getAPValue());
     uint64_t value = 0;
     bool isExact = true;
-    Arg.convertToInteger(&value, resultType, false,
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+    MutableArrayRef<uint64_t> valueRef = makeMutableArrayRef(value);
+#else
+    uint64_t *valueRef = &value;
+#endif
+    Arg.convertToInteger(valueRef, resultType, false,
                          llvm::APFloat::rmTowardZero, &isExact);
     bindLocal(ki, state, ConstantExpr::alloc(value, resultType));
     break;
@@ -2233,7 +2241,12 @@ void Executor::executeInstruction(ExecutionState &state, KInstruction *ki) {
 
     uint64_t value = 0;
     bool isExact = true;
-    Arg.convertToInteger(&value, resultType, true,
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+    MutableArrayRef<uint64_t> valueRef = makeMutableArrayRef(value);
+#else
+    uint64_t *valueRef = &value;
+#endif
+    Arg.convertToInteger(valueRef, resultType, true,
                          llvm::APFloat::rmTowardZero, &isExact);
     bindLocal(ki, state, ConstantExpr::alloc(value, resultType));
     break;

@@ -123,7 +123,7 @@ void LowerSwitchPass::processSwitchInst(SwitchInst *SI) {
   
   CaseVector cases;
   
-  for (SwitchInst::CaseIt i = SI->case_begin(), e = SI->case_end(); i != e; ++i)
+  for (auto i : SI->cases())
     cases.push_back(SwitchCase(i.getCaseValue(),
                                i.getCaseSuccessor()));
   

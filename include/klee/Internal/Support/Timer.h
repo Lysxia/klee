@@ -11,6 +11,7 @@
 #define KLEE_TIMER_H
 
 #include <stdint.h>
+#include <chrono>
 
 #if LLVM_VERSION_CODE >= LLVM_VERSION(4, 0)
 #include <llvm/Support/Chrono.h>

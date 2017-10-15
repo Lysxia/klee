@@ -55,10 +55,16 @@ bool DivCheckPass::runOnModule(Module &M) {
             
             // Lazily bind the function to avoid always importing it.
             if (!divZeroCheckFunction) {
-              Constant *fc = M.getOrInsertFunction("klee_div_zero_check", 
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+              Constant *fc = M.getOrInsertFunction("klee_div_zero_check",
+                                                   Type::getVoidTy(ctx),
+                                                   Type::getInt64Ty(ctx));
+#else
+              Constant *fc = M.getOrInsertFunction("klee_div_zero_check",
                                                    Type::getVoidTy(ctx),
                                                    Type::getInt64Ty(ctx),
                                                    NULL);
+#endif
               divZeroCheckFunction = cast<Function>(fc);
             }
 
@@ -115,11 +121,18 @@ bool OvershiftCheckPass::runOnModule(Module &M) {
 
             // Lazily bind the function to avoid always importing it.
             if (!overshiftCheckFunction) {
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+              Constant *fc = M.getOrInsertFunction("klee_overshift_check",
+                                                   Type::getVoidTy(ctx),
+                                                   Type::getInt64Ty(ctx),
+                                                   Type::getInt64Ty(ctx));
+#else
               Constant *fc = M.getOrInsertFunction("klee_overshift_check",
                                                    Type::getVoidTy(ctx),
                                                    Type::getInt64Ty(ctx),
                                                    Type::getInt64Ty(ctx),
                                                    NULL);
+#endif
               overshiftCheckFunction = cast<Function>(fc);
             }
 
