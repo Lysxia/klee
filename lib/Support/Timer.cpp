@@ -7,6 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <chrono>
+
 #include "klee/Config/Version.h"
 #include "klee/Internal/Support/Timer.h"
 
@@ -30,11 +32,14 @@ uint64_t WallTimer::check() {
 #else
 
 WallTimer::WallTimer() {
-  startMicroseconds = util::getWallTimeVal().usec();
+  start = util::getWallTimeVal();
 }
 
 uint64_t WallTimer::check() {
-  return util::getWallTimeVal().usec() - startMicroseconds;
+  std::chrono::duration<uint64_t> delta =
+    std::chrono::duration_cast<std::chrono::duration<uint64_t>>(
+        util::getWallTimeVal() - start);
+  return delta.count();
 }
 
 #endif

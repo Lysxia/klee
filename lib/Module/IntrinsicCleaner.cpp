@@ -81,7 +81,8 @@ bool IntrinsicCleanerPass::runOnBasicBlock(BasicBlock &b, Module &M) {
           new StoreInst(load, castedDst, false, ii);
         } else {
           assert(WordSize == 8 && "Invalid word size!");
-          Type *i64p = PointerType::getUnqual(Type::getInt64Ty(ctx));
+          Type *i64 = Type::getInt64Ty(ctx);
+          Type *i64p = PointerType::getUnqual(i64);
           Value *pDst = CastInst::CreatePointerCast(dst, i64p, "vacopy.cast.dst", ii);
           Value *pSrc = CastInst::CreatePointerCast(src, i64p, "vacopy.cast.src", ii);
           Value *val = new LoadInst(pSrc, std::string(), ii); new StoreInst(val, pDst, ii);
@@ -208,7 +209,7 @@ bool IntrinsicCleanerPass::runOnBasicBlock(BasicBlock &b, Module &M) {
         // a call of the abort() function.
         Function *F = cast<Function>(
           M.getOrInsertFunction(
-            "abort", Type::getVoidTy(ctx), NULL));
+            "abort", Type::getVoidTy(ctx)));
         F->setDoesNotReturn();
         F->setDoesNotThrow();
 

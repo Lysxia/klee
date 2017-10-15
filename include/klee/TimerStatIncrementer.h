@@ -10,6 +10,8 @@
 #ifndef KLEE_TIMERSTATINCREMENTER_H
 #define KLEE_TIMERSTATINCREMENTER_H
 
+#include <chrono>
+
 #include "klee/Statistics.h"
 #include "klee/Internal/Support/Timer.h"
 
@@ -22,7 +24,7 @@ namespace klee {
   public:
     TimerStatIncrementer(Statistic &_statistic) : statistic(_statistic) {}
     ~TimerStatIncrementer() {
-      statistic += timer.check(); 
+      statistic += timer.check();
     }
 
     uint64_t check() { return timer.check(); }

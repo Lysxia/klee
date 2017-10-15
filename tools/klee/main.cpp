@@ -657,13 +657,22 @@ static int initEnv(Module *mainModule) {
 
   Instruction *firstInst = &*(mainFn->begin()->begin());
 
-  Value *oldArgc = &*(mainFn->arg_begin());
-  Value *oldArgv = &*(++mainFn->arg_begin());
+  auto AI = mainFn->arg_begin();
+  Value *oldArgc = &*AI;
+  Value *oldArgv = &*(++AI);
 
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+  const DataLayout &DL = mainFn->getParent()->getDataLayout();
+  AllocaInst* argcPtr =
+    new AllocaInst(oldArgc->getType(), DL.getAllocaAddrSpace(), "argcPtr", firstInst);
+  AllocaInst* argvPtr =
+    new AllocaInst(oldArgv->getType(), DL.getAllocaAddrSpace(), "argvPtr", firstInst);
+#else
   AllocaInst* argcPtr =
     new AllocaInst(oldArgc->getType(), "argcPtr", firstInst);
   AllocaInst* argvPtr =
     new AllocaInst(oldArgv->getType(), "argvPtr", firstInst);
+#endif
 
   /* Insert void klee_init_env(int* argc, char*** argv) */
   std::vector<const Type*> params;
@@ -674,8 +683,12 @@ static int initEnv(Module *mainModule) {
     cast<Function>(mainModule->getOrInsertFunction("klee_init_env",
                                                    Type::getVoidTy(ctx),
                                                    argcPtr->getType(),
+#if LLVM_VERSION_CODE >= LLVM_VERSION(5, 0)
+                                                   argvPtr->getType()));
+#else
                                                    argvPtr->getType(),
                                                    NULL));
+#endif
   assert(initEnvFn);
   std::vector<Value*> args;
   args.push_back(argcPtr);

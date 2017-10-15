@@ -307,16 +307,21 @@ void StatsTracker::stepInstruction(ExecutionState &es) {
 #else
       static sys::TimeValue lastNowTime(0,0),lastUserTime(0,0);
     
-      if (lastUserTime.seconds()==0 && lastUserTime.nanoseconds()==0) {
-        sys::TimeValue sys(0,0);
+      if (lastUserTime.count() == 0) {
+        std::chrono::nanoseconds sys;
         sys::Process::GetTimeUsage(lastNowTime,lastUserTime,sys);
       } else {
-        sys::TimeValue now(0,0),user(0,0),sys(0,0);
+        sys::TimePoint<> now;
+        std::chrono::nanoseconds user,sys;
         sys::Process::GetTimeUsage(now,user,sys);
-        sys::TimeValue delta = user - lastUserTime;
-        sys::TimeValue deltaNow = now - lastNowTime;
-        stats::instructionTime += delta.usec();
-        stats::instructionRealTime += deltaNow.usec();
+        std::chrono::microseconds delta =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              user - lastUserTime);
+        std::chrono::microseconds deltaNow =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              now - lastNowTime);
+        stats::instructionTime += delta.count();
+        stats::instructionRealTime += deltaNow.count();
         lastUserTime = user;
         lastNowTime = now;
       }

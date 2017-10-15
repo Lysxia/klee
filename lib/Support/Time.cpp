@@ -48,17 +48,19 @@ sys::TimePoint<> util::getWallTimeVal() {
 
 #else
 double util::getUserTime() {
-  sys::TimeValue now(0,0),user(0,0),sys(0,0);
+  sys::TimePoint<> now;
+  std::chrono::nanoseconds user, sys;
   sys::Process::GetTimeUsage(now,user,sys);
-  return (user.seconds() + (double) user.nanoseconds() * 1e-9);
+  std::chrono::duration<double> userSecs = user;
+  return userSecs.count();
 }
 
 double util::getWallTime() {
-  sys::TimeValue now = getWallTimeVal();
-  return (now.seconds() + ((double) now.nanoseconds() * 1e-9));
+  std::chrono::duration<double> nowSecs = getWallTimeVal().time_since_epoch();
+  return nowSecs.count();
 }
 
-sys::TimeValue util::getWallTimeVal() {
-  return sys::TimeValue::now();
+sys::TimePoint<> util::getWallTimeVal() {
+  return std::chrono::system_clock::now();
 }
 #endif
