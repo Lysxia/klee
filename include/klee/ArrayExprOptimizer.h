@@ -18,7 +18,10 @@
 #include "klee/AssignmentGenerator.h"
 #include "klee/ExecutionState.h"
 
+#if LLVM_VERSION_CODE >= LLVM_VERSION(4, 0)
+#else
 #include "llvm/Support/TimeValue.h"
+#endif
 #include "klee/Internal/System/Time.h"
 
 #include <ciso646>

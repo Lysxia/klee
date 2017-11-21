@@ -1,6 +1,7 @@
 #include "klee/ArrayExprOptimizer.h"
 
 #include "klee/ArrayExprRewriter.h"
+#include "klee/Config/Version.h"
 #include "klee/util/BitArray.h"
 
 #include <iostream>
@@ -14,8 +15,8 @@ llvm::cl::opt<ArrayOptimizationType> OptimizeArray(
         clEnumValN(ALL, "all", "Combining index and value transformations"),
         clEnumValN(INDEX, "index", "Index-based transformation"),
         clEnumValN(VALUE, "value", "Value-based transformation at branch (both "
-                                   "concrete and concrete/symbolic)"),
-        clEnumValEnd),
+                                   "concrete and concrete/symbolic)")
+        KLEE_LLVM_CL_VAL_END),
     llvm::cl::init(NONE),
     llvm::cl::desc("Optimize accesses to either concrete or concrete/symbolic "
                    "arrays. (default=off)"));
